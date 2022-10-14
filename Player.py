@@ -74,8 +74,9 @@ class Player:
         print(fireMessage)
 
     def stop(self):
-        now = time.time()
-        pass 
+        stopMessage = "stop:"
+        SendMessage(stopMessage)
+        print(stopMessage)
 
     def move_direction(self):
         now = time.time()
