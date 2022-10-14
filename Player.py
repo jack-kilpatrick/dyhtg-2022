@@ -13,13 +13,14 @@ class Player:
 
 
     @classmethod
-    def spawn(cls, serverDetails, playerName):
+    def spawn(cls, serverDetails, playerName, verbose=False):
+        print('spawning', playerName)
         UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         
-        return Player(playerName, serverDetails, UDPClientSocket)
+        return Player(playerName, serverDetails, UDPClientSocket, verbose=verbose)
         
 
-    def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
+    def __init__(self, playername: str, serverDetails: tuple[str, int], socket, verbose=False):
         self.moveInterval = 10
         self.timeSinceMove = time.time()
 
@@ -46,11 +47,18 @@ class Player:
 
         self.nearby_items = [] 
         self.seen_floors = [] 
+        self.seen_walls = [] 
+        self.verbose = verbose
+
+
+        self.join()
 
         
 
     def join(self):
-        join_command = "requestjoin:mydisplayname"
+        if self.verbose:
+            print('joining')
+        join_command = "requestjoin:" + self.playername
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
@@ -91,25 +99,38 @@ class Player:
 
 
     def update(self, update):
+        if self.verbose:
+            print('updating')
         components = update.split(':')
         dtype = components[0]
         data = components[1].split(',')
 
+        if self.verbose:
+            print(dtype, data)
+
         if dtype == 'playerupdate':
-            self.x = data[0]
-            self.y = data[1]
+            self.x = int(data[0])
+            self.y = int(data[1])
 
             # what are data[2..4]
 
         elif dtype == 'nearbyitem':
             self.nearby_items.append(data)
             
-
         elif dtype == 'nearbyfloors':
             self.seen_floors.append(data)
 
         elif dtype == 'nearbywalls':
-            pass
+            self.seen_walls.append(data)
+
+        elif dtype == 'playerjoined':
+            self.x = int(data[2])
+            self.y = int(data[3])
+            self.type = data[0]
+
+            if self.verbose:
+                print('Player', self.playername, 'joined as', self.type, f'at position {self.x}, {self.y}'  )
+            
 
         else:
             print('ERR: unhandled update item', update)
