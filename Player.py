@@ -6,8 +6,10 @@ import sys
 
 
 
-class Player: 
+class Player:
 
+    # A list of all the actions the player can perform
+    actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
 
     @classmethod
     def spawn(cls, serverDetails, playerName):
@@ -19,12 +21,8 @@ class Player:
             sys.exit(1)
         
         return Player(playerName, serverDetails, UDPClientSocket)
-        
 
     def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
-
-        # A list of all the actions the player can perform
-        self.actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
 
         # This dictionary controls which actions are logged (displayed in the output)
         self.logging_actions = {action:False for action in self.actions}
@@ -65,6 +63,9 @@ class Player:
     def set_logging_for_action(self,action):
         if action in self.actions:
             self.logging_actions[action] = True
+    def set_logging_for_action(self, action):
+        if action in self.actions:
+            self.log_actions[action] = True
         else:
             print(f"{action} is not a valid action, so cannot be logged - ignoring...")
 
