@@ -1,10 +1,22 @@
-
+import sys
 from Player import Player
 
 if __name__ == '__main__':
     player1 = Player.spawn(("10.211.55.4", 11000),'lorne', verbose=True)
     # player1.socket.settimeout(0)
     players = [player1]
+
+    # The actions we want to display as script output for each player
+    actions_to_log = []
+
+    args = sys.argv
+    for arg in args:
+        if arg[:4] == "log:":
+            actions_to_log = arg[4:].split(",")
+
+    for player in players:
+        for action in actions_to_log:
+            player.set_logging_for_action(action)
 
     while True:
 

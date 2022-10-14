@@ -54,9 +54,14 @@ class Player:
         self.nearby_items = [] 
         self.seen_floors = []
 
+    def get_player_actions(self, action):
+        return self.actions
+
     def set_logging_for_action(self,action):
         if action in self.actions:
             self.log_actions[action] = True
+        else:
+            print(f"{action} is not a valid action, so cannot be logged - ignoring...")
 
     def join(self):
         join_command = "requestjoin:mydisplayname"
