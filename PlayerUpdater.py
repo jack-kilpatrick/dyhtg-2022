@@ -6,6 +6,8 @@ if __name__ == '__main__':
     # player1.socket.settimeout(0)
     players = [player1]
 
+    joined_players = [player for player in players if player.joined_server]
+
     # The actions we want to display as script output for each player
     actions_to_log = []
 
@@ -17,30 +19,27 @@ if __name__ == '__main__':
             else:
                 actions_to_log = arg[4:].split(",")
 
-    for player in players:
+    for player in joined_players:
         for action in actions_to_log:
             player.set_logging_for_action(action)
 
     while True:
 
-        for p in players:
+        for p in joined_players:
 
-            if p.joined_server:
             
-                # perform action then get update
-                p.move_to(p.x+1, p.y+1)
+            # perform action then get update
+            p.move_to(p.x+1, p.y+1)
 
-                print(p.x, p.y)
-                try:
-                    update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
-                except TimeoutError:
-                    print("Connection to server timed out - exiting...")
-                    break
-                p.update(update, verbose=True)
-                # Get the next 10 updates
-                # for _ in range(10):
-                #     update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
-                #     p.update(update, verbose=True)
+            print(p.x, p.y)
+            try:
+                update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
+            except TimeoutError:
+                print("Connection to server timed out - exiting...")
+                break
+            p.update(update, verbose=True)
+            # Get the next 10 updates
+            # for _ in range(10):
+            #     update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
+            #     p.update(update, verbose=True)
 
-            else:
-                print(f"Failed to join server with player: {p.playername}")

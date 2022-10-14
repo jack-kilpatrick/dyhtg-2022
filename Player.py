@@ -64,6 +64,7 @@ class Player:
             update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
         except TimeoutError:
             self.joined_server = False
+            print(f"Failed to join server with player: {self.playername}")
         else:
             self.joined_server = True
             self.update(update)
