@@ -27,33 +27,17 @@ class Player:
         # This dictionary controls which actions are logged (displayed in the output)
         self.logging_actions = {action:False for action in self.actions}
 
-        self.moveInterval = 10
-        self.timeSinceMove = time.time()
-
-        self.fireInterval = 5
-        self.timeSinceFire = time.time()
-
-        self.stopInterval = 30
-        self.timeSinceStop = time.time()
-
-        self.directionMoveInterval = 15
-        self.timeSinceDirectionMove = time.time()
-
-        self.directionFaceInterval = 9
-        self.timeSinceDirectionFace = time.time()
-
-
         self.playername = playername
-        self.serverDetails = serverDetails
-
-
-        self.socket = socket
-
-        self.bufferSize = 1024
-
-        self.nearby_items = [] 
+        self.x = 0
+        self.y = 0
+        self.health = 0
+        self.ammo = 0
+        self.nearby_items = []
         self.seen_floors = []
 
+        self.serverDetails = serverDetails
+        self.socket = socket
+        self.bufferSize = 1024
 
         self.join() 
 
@@ -129,6 +113,8 @@ class Player:
         if dtype == 'playerupdate':
             self.x = int(data[0])
             self.y = int(data[1])
+            self.health = int(data[2])
+            self.ammo = int(data[3])
 
             # what are data[2..4]
 
@@ -146,8 +132,9 @@ class Player:
             self.seen_floors.append(data)
 
         elif dtype == 'playerjoined':
-            self.x = int(data[2] ) 
-            self.y = int(data[3]) 
+            self.x = int(data[2])
+            self.y = int(data[3])
+
         
 
         elif dtype == 'nearbywalls':
