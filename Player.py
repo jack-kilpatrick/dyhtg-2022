@@ -69,8 +69,9 @@ class Player:
             print(requestmovemessage)
 
     def fire(self):
-        now = time.time()
-        pass
+        fireMessage = "fire:"
+        SendMessage(fireMessage)
+        print(fireMessage)
 
     def stop(self):
         now = time.time()
