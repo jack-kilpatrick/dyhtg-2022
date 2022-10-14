@@ -14,13 +14,16 @@ class Player:
     # A list of all the actions the player can perform
     actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
 
+    # This is the time limit for socket operations such as recv
+    socket_timeout = 30
+
     @classmethod
     def spawn(cls, serverDetails, playerName):
         UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
         return Player(playerName, serverDetails, UDPClientSocket)
 
-    def __init__(self, playername: str, serverDetails: tuple[str, int], socket, socket_timeout):
+    def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
 
         # This dictionary controls which actions are logged (displayed in the output)
         self.log_actions = {action: False for action in Player.actions}
@@ -46,7 +49,6 @@ class Player:
 
 
         self.socket = socket
-        self.socket_timeout=socket_timeout
 
         self.bufferSize          = 1024
 
@@ -54,7 +56,7 @@ class Player:
         self.seen_floors = []
 
         # Set the timeout for socket operations such as recvfrom
-        socket.settimeout(socket_timeout)
+        socket.settimeout(Player.socket_timeout)
 
     def set_logging_for_action(self, action):
         if action in Player.actions:
