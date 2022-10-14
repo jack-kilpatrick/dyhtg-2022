@@ -12,7 +12,10 @@ if __name__ == '__main__':
     args = sys.argv
     for arg in args:
         if arg[:4] == "log:":
-            actions_to_log = arg[4:].split(",")
+            if arg[4:] == "all":
+                actions_to_log = Player.actions
+            else:
+                actions_to_log = arg[4:].split(",")
 
     for player in players:
         for action in actions_to_log:

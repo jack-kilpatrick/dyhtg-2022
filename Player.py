@@ -9,23 +9,21 @@ def SendMessage(requestmovemessage, socket, serverDetails):
 
 
 
-class Player: 
+class Player:
 
+    # A list of all the actions the player can perform
+    actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
 
     @classmethod
     def spawn(cls, serverDetails, playerName):
         UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         
         return Player(playerName, serverDetails, UDPClientSocket)
-        
 
     def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
 
-        # A list of all the actions the player can perform
-        self.actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
-
         # This dictionary controls which actions are logged (displayed in the output)
-        self.log_actions = {action:False for action in self.actions}
+        self.log_actions = {action: False for action in Player.actions}
 
         self.moveInterval = 10
         self.timeSinceMove = time.time()
@@ -54,11 +52,8 @@ class Player:
         self.nearby_items = [] 
         self.seen_floors = []
 
-    def get_player_actions(self, action):
-        return self.actions
-
-    def set_logging_for_action(self,action):
-        if action in self.actions:
+    def set_logging_for_action(self, action):
+        if action in Player.actions:
             self.log_actions[action] = True
         else:
             print(f"{action} is not a valid action, so cannot be logged - ignoring...")
