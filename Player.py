@@ -2,6 +2,7 @@ import socket
 import time
 import random
 
+
 def SendMessage(requestmovemessage, socket, serverDetails):
     bytesToSend = str.encode(requestmovemessage)
     socket.sendto(bytesToSend, serverDetails)
@@ -11,11 +12,11 @@ def SendMessage(requestmovemessage, socket, serverDetails):
 class Player: 
 
 
-    @staticmethod
+    @classmethod
     def spawn(cls, serverDetails, playerName):
         UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         
-        return cls(playerName, serverDetails, UDPClientSocket)
+        return Player(playerName, serverDetails, UDPClientSocket)
         
 
     def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
@@ -41,10 +42,25 @@ class Player:
 
         self.socket = socket
 
+        self.bufferSize          = 1024
+
+        self.nearby_items = [] 
+        self.seen_floors = [] 
+
+        
+
+    def join(self):
+        join_command = "requestjoin:mydisplayname"
+        join_bytes = str.encode(join_command)
+
+        self.socket.sendto(join_bytes, self.serverDetails)
+        update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
+
+        self.update(update)
+
 
     
-    def spawn(self):
-        
+
     
 
     def move_to(self, x: int, y: int):
@@ -53,9 +69,8 @@ class Player:
             print(requestmovemessage)
 
     def fire(self):
-        fireMessage = "fire:"
-        SendMessage(fireMessage)
-        print(fireMessage)
+        now = time.time()
+        pass
 
     def stop(self):
         now = time.time()
@@ -67,4 +82,31 @@ class Player:
 
     def face_direction(self):
         now = time.time()
-        pass
+        pass 
+    
+
+
+    def update(self, update):
+        components = update.split(':')
+        dtype = components[0]
+        data = components[1].split(',')
+
+        if dtype == 'playerupdate':
+            self.x = data[0]
+            self.y = data[1]
+
+            # what are data[2..4]
+
+        elif dtype == 'nearbyitem':
+            self.nearby_items.append(data)
+            
+
+        elif dtype == 'nearbyfloors':
+            self.seen_floors.append(data)
+
+        elif dtype == 'nearbywalls':
+            pass
+
+        else:
+            print('ERR: unhandled update item', update)
+
