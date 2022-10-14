@@ -79,12 +79,12 @@ class Player:
         print(stopMessage)
 
     def move_direction(self, direction):
-        directionMoveMessage = "movedirection:" + direction
+        directionMoveMessage = f"movedirection:{direction}"
         SendMessage(directionMoveMessage)
         print(directionMoveMessage)
 
     def face_direction(self, direction):
-        directionFaceMessage = "facedirection:" + direction
+        directionFaceMessage = f"facedirection:{direction}"
         SendMessage(directionFaceMessage)
         print(directionFaceMessage)
     
