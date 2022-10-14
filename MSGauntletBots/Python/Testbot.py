@@ -9,7 +9,7 @@ name = "mydisplayname"
 
 bytesToSend         = str.encode(msgFromClient)
 
-serverAddressPort   = ("127.0.0.1", 11000)
+serverAddressPort   = ("10.211.55.4", 11000)
 
 bufferSize          = 1024
 
