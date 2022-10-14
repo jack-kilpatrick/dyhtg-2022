@@ -1,10 +1,8 @@
 import sys
 from Player import Player
-import time
 
 if __name__ == '__main__':
-    
-    player1 = Player.spawn(("10.211.55.1", 11000),'lorne')
+    player1 = Player.spawn(("10.211.55.4", 11000),'lorne')
     # player1.socket.settimeout(0)
     players = [player1]
 
@@ -24,18 +22,22 @@ if __name__ == '__main__':
             player.set_logging_for_action(action)
 
     while True:
-        time.sleep(1)
 
         for p in players:
             
             # perform action then get update
+            p.move_to(p.x+1, p.y+1)
+
             print(p.x, p.y)
-            p.move_to(p.x+1, p.y)
-
-            
-            update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii') 
-            p.update(update)
+            try:
+                update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
+            except TimeoutError:
+                print("Connection to server timed out - exiting...")
+                break
+            p.update(update, verbose=True)
             # Get the next 10 updates
-            
+            # for _ in range(10):
+            #     update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii') 
+            #     p.update(update, verbose=True)
 
-        
+                

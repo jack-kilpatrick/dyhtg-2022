@@ -1,8 +1,11 @@
 import socket
 import time
 import random
-import sys
 
+
+def SendMessage(requestmovemessage, socket, serverDetails):
+    bytesToSend = str.encode(requestmovemessage)
+    socket.sendto(bytesToSend, serverDetails)
 
 
 
@@ -13,19 +16,14 @@ class Player:
 
     @classmethod
     def spawn(cls, serverDetails, playerName):
-        try:
-            UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        except socket.error as e:
+        UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
-            print("Error creating socket: ", e)
-            sys.exit(1)
-        
         return Player(playerName, serverDetails, UDPClientSocket)
 
-    def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
+    def __init__(self, playername: str, serverDetails: tuple[str, int], socket, socket_timeout):
 
         # This dictionary controls which actions are logged (displayed in the output)
-        self.logging_actions = {action:False for action in self.actions}
+        self.log_actions = {action: False for action in Player.actions}
 
         self.moveInterval = 10
         self.timeSinceMove = time.time()
@@ -48,23 +46,18 @@ class Player:
 
 
         self.socket = socket
+        self.socket_timeout=socket_timeout
 
-        self.bufferSize = 1024
+        self.bufferSize          = 1024
 
         self.nearby_items = [] 
         self.seen_floors = []
 
+        # Set the timeout for socket operations such as recvfrom
+        socket.settimeout(socket_timeout)
 
-        self.join() 
-
-    def get_player_actions(self, action):
-        return self.actions
-
-    def set_logging_for_action(self,action):
-        if action in self.actions:
-            self.logging_actions[action] = True
     def set_logging_for_action(self, action):
-        if action in self.actions:
+        if action in Player.actions:
             self.log_actions[action] = True
         else:
             print(f"{action} is not a valid action, so cannot be logged - ignoring...")
@@ -74,46 +67,44 @@ class Player:
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
+
         update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
+
 
         self.update(update)
 
 
-    def SendMessage(self, requestmovemessage ):
-        bytesToSend = str.encode(requestmovemessage)
-        self.socket.sendto(bytesToSend, self.serverDetails)
-
-
+    
 
     
 
     def move_to(self, x: int, y: int):
             requestmovemessage = f"moveto:{x},{y}"
-            self.SendMessage(requestmovemessage)
+            SendMessage(requestmovemessage)
             if self.logging_actions["move_to"]:
                 print(requestmovemessage)
 
     def fire(self):
         fireMessage = "fire:"
-        self.SendMessage(fireMessage)
+        SendMessage(fireMessage)
         if self.logging_actions["fire"]:
             print(fireMessage)
 
     def stop(self):
         stopMessage = "stop:"
-        self.SendMessage(stopMessage)
+        SendMessage(stopMessage)
         if self.logging_actions["stop"]:
             print(stopMessage)
 
     def move_direction(self, direction):
         directionMoveMessage = f"movedirection:{direction}"
-        self.SendMessage(directionMoveMessage)
+        SendMessage(directionMoveMessage)
         if self.logging_actions["move_direction"]:
             print(directionMoveMessage)
 
     def face_direction(self, direction):
         directionFaceMessage = f"facedirection:{direction}"
-        self.SendMessage(directionFaceMessage)
+        SendMessage(directionFaceMessage)
         if self.logging_actions["face_direction"]:
             print(directionFaceMessage)
     
@@ -124,31 +115,18 @@ class Player:
         dtype = components[0]
         data = components[1].split(',')
 
-        print(dtype, data)
-
         if dtype == 'playerupdate':
-            self.x = int(data[0])
-            self.y = int(data[1])
+            self.x = data[0]
+            self.y = data[1]
 
             # what are data[2..4]
 
         elif dtype == 'nearbyitem':
-            # self.nearby_items.append(data)
-
-            if len(data):
-                n_groups = (len(data)-1) // 3
-                for i in range(n_groups):
-
-                    self.nearby_items.append(data[i*3:(i+1)*3])
+            self.nearby_items.append(data)
             
 
         elif dtype == 'nearbyfloors':
             self.seen_floors.append(data)
-
-        elif dtype == 'playerjoined':
-            self.x = int(data[2] ) 
-            self.y = int(data[3]) 
-        
 
         elif dtype == 'nearbywalls':
             pass
