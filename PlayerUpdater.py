@@ -37,7 +37,7 @@ if __name__ == '__main__':
             except TimeoutError:
                 print("Connection to server timed out - exiting...")
                 break
-            p.update(update, verbose=True)
+            p.update(update)
             # Get the next 10 updates
             # for _ in range(10):
             #     update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
