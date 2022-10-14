@@ -2,7 +2,6 @@ import socket
 import time
 import random
 
-
 def SendMessage(requestmovemessage, socket, serverDetails):
     bytesToSend = str.encode(requestmovemessage)
     socket.sendto(bytesToSend, serverDetails)
@@ -54,8 +53,9 @@ class Player:
             print(requestmovemessage)
 
     def fire(self):
-        now = time.time()
-        pass
+        fireMessage = "fire:"
+        SendMessage(fireMessage)
+        print(fireMessage)
 
     def stop(self):
         now = time.time()
@@ -67,5 +67,4 @@ class Player:
 
     def face_direction(self):
         now = time.time()
-        pass 
-    
+        pass
