@@ -24,20 +24,23 @@ if __name__ == '__main__':
     while True:
 
         for p in players:
+
+            if p.joined_server:
             
-            # perform action then get update
-            p.move_to(p.x+1, p.y+1)
+                # perform action then get update
+                p.move_to(p.x+1, p.y+1)
 
-            print(p.x, p.y)
-            try:
-                update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
-            except TimeoutError:
-                print("Connection to server timed out - exiting...")
-                break
-            p.update(update, verbose=True)
-            # Get the next 10 updates
-            # for _ in range(10):
-            #     update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii') 
-            #     p.update(update, verbose=True)
+                print(p.x, p.y)
+                try:
+                    update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
+                except TimeoutError:
+                    print("Connection to server timed out - exiting...")
+                    break
+                p.update(update, verbose=True)
+                # Get the next 10 updates
+                # for _ in range(10):
+                #     update = p.socket.recvfrom(p.bufferSize)[0].decode('ascii')
+                #     p.update(update, verbose=True)
 
-                
+            else:
+                print(f"Failed to join server with player: {p.playername}")

@@ -39,6 +39,7 @@ class Player:
         self.socket = socket
         self.bufferSize = 1024
 
+        self.joined_server = False
         self.join() 
 
     def get_player_actions(self, action):
@@ -58,9 +59,14 @@ class Player:
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
-        update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
 
-        self.update(update)
+        try:
+            update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
+        except TimeoutError:
+            self.joined_server = False
+        else:
+            self.joined_server = True
+            self.update(update)
 
 
     def SendMessage(self, requestmovemessage ):
