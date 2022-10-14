@@ -78,9 +78,10 @@ class Player:
         SendMessage(stopMessage)
         print(stopMessage)
 
-    def move_direction(self):
-        now = time.time()
-        pass
+    def move_direction(self, direction):
+        directionMoveMessage = "movedirection:" + direction
+        SendMessage(directionMoveMessage)
+        print(directionMoveMessage)
 
     def face_direction(self):
         now = time.time()
