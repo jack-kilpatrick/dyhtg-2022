@@ -13,14 +13,20 @@ class Player:
 
 
     @classmethod
-    def spawn(cls, serverDetails, playerName, verbose=False):
-        print('spawning', playerName)
+    def spawn(cls, serverDetails, playerName):
         UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         
-        return Player(playerName, serverDetails, UDPClientSocket, verbose=verbose)
+        return Player(playerName, serverDetails, UDPClientSocket)
         
 
-    def __init__(self, playername: str, serverDetails: tuple[str, int], socket, verbose=False):
+    def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
+
+        # A list of all the actions the player can perform
+        self.actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
+
+        # This dictionary controls which actions are logged (displayed in the output)
+        self.log_actions = {action:False for action in self.actions}
+
         self.moveInterval = 10
         self.timeSinceMove = time.time()
 
@@ -46,19 +52,14 @@ class Player:
         self.bufferSize          = 1024
 
         self.nearby_items = [] 
-        self.seen_floors = [] 
-        self.seen_walls = [] 
-        self.verbose = verbose
+        self.seen_floors = []
 
-
-        self.join()
-
-        
+    def set_logging_for_action(self,action):
+        if action in self.actions:
+            self.log_actions[action] = True
 
     def join(self):
-        if self.verbose:
-            print('joining')
-        join_command = "requestjoin:" + self.playername
+        join_command = "requestjoin:mydisplayname"
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
@@ -74,63 +75,55 @@ class Player:
     def move_to(self, x: int, y: int):
             requestmovemessage = f"moveto:{x},{y}"
             SendMessage(requestmovemessage)
-            print(requestmovemessage)
+            if self.logging_actions["move_to"]:
+                print(requestmovemessage)
 
     def fire(self):
         fireMessage = "fire:"
         SendMessage(fireMessage)
-        print(fireMessage)
+        if self.logging_actions["fire"]:
+            print(fireMessage)
 
     def stop(self):
         stopMessage = "stop:"
         SendMessage(stopMessage)
-        print(stopMessage)
+        if self.logging_actions["stop"]:
+            print(stopMessage)
 
     def move_direction(self, direction):
         directionMoveMessage = f"movedirection:{direction}"
         SendMessage(directionMoveMessage)
-        print(directionMoveMessage)
+        if self.logging_actions["move_direction"]:
+            print(directionMoveMessage)
 
     def face_direction(self, direction):
         directionFaceMessage = f"facedirection:{direction}"
         SendMessage(directionFaceMessage)
-        print(directionFaceMessage)
+        if self.logging_actions["face_direction"]:
+            print(directionFaceMessage)
     
 
 
     def update(self, update):
-        if self.verbose:
-            print('updating')
         components = update.split(':')
         dtype = components[0]
         data = components[1].split(',')
 
-        if self.verbose:
-            print(dtype, data)
-
         if dtype == 'playerupdate':
-            self.x = int(data[0])
-            self.y = int(data[1])
+            self.x = data[0]
+            self.y = data[1]
 
             # what are data[2..4]
 
         elif dtype == 'nearbyitem':
             self.nearby_items.append(data)
             
+
         elif dtype == 'nearbyfloors':
             self.seen_floors.append(data)
 
         elif dtype == 'nearbywalls':
-            self.seen_walls.append(data)
-
-        elif dtype == 'playerjoined':
-            self.x = int(data[2])
-            self.y = int(data[3])
-            self.type = data[0]
-
-            if self.verbose:
-                print('Player', self.playername, 'joined as', self.type, f'at position {self.x}, {self.y}'  )
-            
+            pass
 
         else:
             print('ERR: unhandled update item', update)
