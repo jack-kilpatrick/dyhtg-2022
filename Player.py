@@ -64,8 +64,9 @@ class Player:
     
 
     def move_to(self, x: int, y: int):
-        now = time.time()
-        pass
+            requestmovemessage = f"moveto:{x},{y}"
+            SendMessage(requestmovemessage)
+            print(requestmovemessage)
 
     def fire(self):
         now = time.time()
