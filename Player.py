@@ -42,6 +42,7 @@ class Player:
         self.seen_items = set()
         self.seen_floors = set()
         self.seen_walls = set()
+        self.seen_walls_dict = {}
         self.seen_players = {}
         self.position_graph={}
 
@@ -90,22 +91,23 @@ class Player:
 
     def update_position_graph(self, position_as_tuple, recursion_layer=0):
 
-        if recursion_layer < 8:
+        if self.position_graph.get(position_as_tuple) is None:
+            if recursion_layer < 1:
 
-            self.position_graph[position_as_tuple] = []
+                self.position_graph[position_as_tuple] = []
 
-            x,y = position_as_tuple
-            adj_positions_queue = []
+                x,y = position_as_tuple
+                adj_positions_queue = []
 
-            for x_offset in [-8,0,8]:
-                for y_offset in [-8,0,8]:
-                    if Wall(x+x_offset,y+y_offset) not in self.seen_walls:
-                        adj_pos = (x+x_offset,y+y_offset)
-                        self.position_graph[position_as_tuple].append(adj_pos)
-                        adj_positions_queue.append(adj_pos)
+                for x_offset in [-8,0,8]:
+                    for y_offset in [-8,0,8]:
+                        if self.seen_walls_dict.get((x+x_offset, y+y_offset)) is None:
+                            adj_pos = (x+x_offset,y+y_offset)
+                            self.position_graph[position_as_tuple].append(adj_pos)
+                            adj_positions_queue.append(adj_pos)
 
-            for pos in adj_positions_queue:
-                self.update_position_graph(pos, recursion_layer+1)
+                for pos in adj_positions_queue:
+                    self.update_position_graph(pos, recursion_layer+1)
 
 
 
@@ -191,8 +193,8 @@ class Player:
 
         elif dtype == 'playerjoined':
             print('joined with data', data)
-            self.x = int(data[2])
-            self.y = int(data[3])
+            self.x = int(float(data[2]))
+            self.y = int(float(data[3]))
 
         elif dtype == 'nearbywalls':
             if len(data):
@@ -203,6 +205,7 @@ class Player:
                     ft = Wall(int(x), int(y))
 
                     self.seen_walls.add(ft)
+                    self.seen_walls_dict[(x,y)] = True
 
         elif dtype == 'nearbyplayer':
             if len(data):
@@ -211,7 +214,7 @@ class Player:
 
         elif dtype == 'exit':
             if len(data):
-                self.exit = Exit(int(data[0]), int(data[1]))
+                self.exit = Exit(int(float(data[0])), int(float(data[1])))
 
         else:
             print('ERR: unhandled update item', update)
@@ -282,9 +285,9 @@ class Player:
 
     def shortest_path_to_pos(self, source_x,source_y, dest_x,dest_y):
 
-        visited = {pos:False for pos in self.position_graph.keys}
-        predecessors = {pos:-1 for pos in self.position_graph.keys}
-        distances_to_positions = {pos:math.inf for pos in self.position_graph.keys}
+        visited = {pos:False for pos in self.position_graph.keys()}
+        predecessors = {pos:-1 for pos in self.position_graph.keys()}
+        distances_to_positions = {pos:math.inf for pos in self.position_graph.keys()}
         position_queue = []
 
         source_pos = (source_x, source_y)
@@ -328,7 +331,8 @@ class Player:
         if path_to_pos:
 
             for pos in path_to_pos:
-                self.move_to(pos)
+                x_pos, y_pos = pos
+                self.move_to(x_pos, y_pos)
 
     def guard_current_pos(self):
 
