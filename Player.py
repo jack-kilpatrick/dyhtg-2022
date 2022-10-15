@@ -91,15 +91,25 @@ class Player:
         bytesToSend = str.encode(requestmovemessage)
         self.socket.sendto(bytesToSend, self.serverDetails)
 
-    def add_to_position_graph(self, position_as_tuple):
-        self.position_graph[position_as_tuple] = []
+    def update_position_graph(self, position_as_tuple, recursion_layer=0):
 
-        x,y = position_as_tuple
+        if recursion_layer < 8:
 
-        for x_offset in [-8,0,8]:
-            for y_offset in [-8,0,8]:
-                if Wall(x+x_offset,y+y_offset) not in self.seen_walls:
-                    self.position_graph[position_as_tuple].append((x+x_offset,y+y_offset))
+            self.position_graph[position_as_tuple] = []
+
+            x,y = position_as_tuple
+            adj_positions_queue = []
+
+            for x_offset in [-8,0,8]:
+                for y_offset in [-8,0,8]:
+                    if Wall(x+x_offset,y+y_offset) not in self.seen_walls:
+                        adj_pos = (x+x_offset,y+y_offset)
+                        self.position_graph[position_as_tuple].append(adj_pos)
+                        adj_positions_queue.append(adj_pos)
+
+            for pos in adj_positions_queue:
+                self.update_position_graph(pos, recursion_layer+1)
+
 
     def move_to(self, x: int, y: int):
 
@@ -109,7 +119,7 @@ class Player:
         adjacent_positions = self.position_graph.get((x,y))
 
         if adjacent_positions is None:
-            self.add_to_position_graph((x,y))
+            self.update_position_graph((x,y))
 
         self.x = x
         self.y = y
