@@ -2,6 +2,7 @@ import socket
 import time
 import random
 import sys
+import math
 from FloorTile import FloorTile
 from Item import Item
 from math import sqrt
@@ -41,6 +42,8 @@ class Player:
         self.seen_items = set()
         self.seen_floors = set()
         self.seen_walls = set()
+
+        self.position_graph={}
 
         self.predecessors = {}
 
@@ -84,10 +87,25 @@ class Player:
         bytesToSend = str.encode(requestmovemessage)
         self.socket.sendto(bytesToSend, self.serverDetails)
 
+    def add_to_position_graph(self, position_as_tuple):
+        self.position_graph[position_as_tuple] = []
+
+        x,y = position_as_tuple
+
+        for x_offset in [-8,0,8]:
+            for y_offset in [-8,0,8]:
+                if Wall(x+x_offset,y+y_offset) not in self.seen_walls:
+                    self.position_graph[position_as_tuple].append((x+x_offset,y+y_offset))
+
     def move_to(self, x: int, y: int):
 
         if f'{x},{y}' not in self.predecessors:
             self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
+
+        adjacent_positions = self.position_graph.get((x,y))
+
+        if adjacent_positions is None:
+            self.add_to_position_graph((x,y))
 
         self.x = x
         self.y = y
@@ -222,3 +240,47 @@ class Player:
         nearest = sorted(self.seen_floors, key=distance)
         unv = list(filter(lambda f: not f.visited, nearest))
         return unv[:k]
+
+    def shortest_path_to_pos(self, source_x,source_y, dest_x,dest_y):
+
+        visited = {pos:False for pos in self.position_graph.keys}
+        predecessors = {pos:-1 for pos in self.position_graph.keys}
+        distances_to_positions = {pos:math.inf for pos in self.position_graph.keys}
+        position_queue = []
+
+        source_pos = (source_x, source_y)
+        dest_pos = (dest_x, dest_y)
+
+        dest_pos_found = False
+        visited[source_pos] = True
+        distances_to_positions[source_pos] = 0
+        position_queue.append(source_pos)
+
+        while len(position_queue) != 0:
+            curr_pos = position_queue.pop(0)
+            for adj_pos in self.position_graph[curr_pos]:
+                if not visited[adj_pos]:
+                    visited[adj_pos] = True
+                    distances_to_positions[adj_pos] = 1+distances_to_positions[curr_pos]
+                    predecessors[adj_pos] = curr_pos
+                    position_queue.append(adj_pos)
+
+                    if adj_pos == dest_pos:
+                        dest_pos_found = True
+                        break
+
+        path_to_position = []
+        if dest_pos_found:
+
+            path_pos = dest_pos
+
+            while (predecessors[path_pos] != -1):
+                path_to_position.append(path_pos)
+                path_pos=predecessors[path_pos]
+
+            path_to_position = path_to_position[::-1]
+
+        return path_to_position
+
+
+
