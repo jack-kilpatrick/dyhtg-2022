@@ -42,12 +42,8 @@ class Player:
         self.seen_items = set()
         self.seen_floors = set()
         self.seen_walls = set()
-
-
+        self.seen_players = set()
         self.position_graph={}
-
-        self.floors_dict = {}
-
 
         self.predecessors = {}
 
@@ -257,6 +253,16 @@ class Player:
         unv = list(filter(lambda f: not f.visited, nearest))
         return unv[:k]
 
+    def k_nearest_players(self, k):
+
+        def distance(player: Player):
+            return sqrt(
+                (self.x - player.x) ** 2 + (self.y - player.y) ** 2
+            )
+
+        nearest = sorted(self.seen_players, key=distance)
+        return nearest[:k]
+
     def shortest_path_to_pos(self, source_x,source_y, dest_x,dest_y):
 
         visited = {pos:False for pos in self.position_graph.keys}
@@ -297,6 +303,26 @@ class Player:
             path_to_position = path_to_position[::-1]
 
         return path_to_position
+
+    def move_to_via_shortest_path(self, destination_x,destination_y):
+
+        path_to_pos = self.shortest_path_to_pos(self.x, self.y, destination_x, destination_y)
+
+        if path_to_pos:
+
+            for pos in path_to_pos:
+                self.move_to(pos)
+
+    def guard_current_pos(self):
+
+        while self.ammo > 0:
+            break
+
+
+
+
+
+
 
 
 
