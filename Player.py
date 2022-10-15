@@ -163,8 +163,8 @@ class Player:
         # print(dtype, data)
 
         if dtype == 'playerupdate':
-            self.x = int(data[0])
-            self.y = int(data[1])
+            self.x = int(float(data[0]))
+            self.y = int(float(data[1]))
             self.health = int(data[2])
             self.ammo = int(data[3])
 
