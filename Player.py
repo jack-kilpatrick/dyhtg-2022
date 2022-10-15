@@ -2,12 +2,12 @@ import socket
 import time
 import random
 import sys
-
-
+from FloorTile import FloorTile
+from Item import Item
+from math import sqrt
 
 
 class Player:
-
     # A list of all the actions the player can perform
     actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
 
@@ -19,13 +19,15 @@ class Player:
 
             print("Error creating socket: ", e)
             sys.exit(1)
-        
+
         return Player(playerName, serverDetails, UDPClientSocket)
 
     def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
 
         # This dictionary controls which actions are logged (displayed in the output)
-        self.logging_actions = {action:False for action in self.actions}
+        self.y = None
+        self.x = None
+        self.logging_actions = {action: False for action in self.actions}
 
         self.moveInterval = 10
         self.timeSinceMove = time.time()
@@ -42,27 +44,25 @@ class Player:
         self.directionFaceInterval = 9
         self.timeSinceDirectionFace = time.time()
 
-
         self.playername = playername
         self.serverDetails = serverDetails
-
 
         self.socket = socket
 
         self.bufferSize = 1024
 
-        self.nearby_items = [] 
-        self.seen_floors = []
+        self.nearby_items = set()
+        self.seen_floors = set()
 
-
-        self.join() 
+        self.join()
 
     def get_player_actions(self, action):
         return self.actions
 
-    def set_logging_for_action(self,action):
+    def set_logging_for_action(self, action):
         if action in self.actions:
             self.logging_actions[action] = True
+
     def set_logging_for_action(self, action):
         if action in self.actions:
             self.log_actions[action] = True
@@ -70,7 +70,7 @@ class Player:
             print(f"{action} is not a valid action, so cannot be logged - ignoring...")
 
     def join(self):
-        join_command = "requestjoin:mydisplayname"
+        join_command = "requestjoin:" + self.playername
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
@@ -78,20 +78,15 @@ class Player:
 
         self.update(update)
 
-
-    def SendMessage(self, requestmovemessage ):
+    def SendMessage(self, requestmovemessage):
         bytesToSend = str.encode(requestmovemessage)
         self.socket.sendto(bytesToSend, self.serverDetails)
 
-
-
-    
-
     def move_to(self, x: int, y: int):
-            requestmovemessage = f"moveto:{x},{y}"
-            self.SendMessage(requestmovemessage)
-            if self.logging_actions["move_to"]:
-                print(requestmovemessage)
+        requestmovemessage = f"moveto:{x},{y}"
+        self.SendMessage(requestmovemessage)
+        if self.logging_actions["move_to"]:
+            print(requestmovemessage)
 
     def fire(self):
         fireMessage = "fire:"
@@ -116,8 +111,6 @@ class Player:
         self.SendMessage(directionFaceMessage)
         if self.logging_actions["face_direction"]:
             print(directionFaceMessage)
-    
-
 
     def update(self, update):
         components = update.split(':')
@@ -127,28 +120,36 @@ class Player:
         print(dtype, data)
 
         if dtype == 'playerupdate':
-            self.x = int(data[0])
-            self.y = int(data[1])
+            # self.x = int(data[0])
+            # self.y = int(data[1])
 
             # what are data[2..4]
+            pass
 
         elif dtype == 'nearbyitem':
             # self.nearby_items.append(data)
 
             if len(data):
-                n_groups = (len(data)-1) // 3
+                n_groups = (len(data) - 1) // 3
                 for i in range(n_groups):
-
-                    self.nearby_items.append(data[i*3:(i+1)*3])
-            
+                    itemtype, x, y = data[i * 3:(i + 1) * 3]
+                    self.nearby_items.add(Item(itemtype, x, y))
 
         elif dtype == 'nearbyfloors':
-            self.seen_floors.append(data)
+            # Each floor tile comes in the format x1,y1,x2,y2,...
+            if len(data):
+                n_groups = (len(data) - 1) // 2
+
+                for i in range(n_groups):
+                    x, y = data[i * 2:(i + 1) * 2]
+                    ft = FloorTile(int(x), int(y), False)
+
+                    self.seen_floors.add(ft)
 
         elif dtype == 'playerjoined':
-            self.x = int(data[2] ) 
-            self.y = int(data[3]) 
-        
+            self.x = int(data[2])
+            self.y = int(data[3])
+
 
         elif dtype == 'nearbywalls':
             pass
@@ -156,3 +157,13 @@ class Player:
         else:
             print('ERR: unhandled update item', update)
 
+    def nearest_floors(self, k):
+
+        def distance(floor: FloorTile):
+            return sqrt(
+                (self.x - floor.x) ** 2 + (self.y - floor.y) ** 2
+            )
+
+        k_nearest_floors = sorted(self.seen_floors, key=distance)[:k]
+
+        return k_nearest_floors
