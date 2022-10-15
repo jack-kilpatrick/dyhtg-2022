@@ -22,4 +22,4 @@ class FloorTile:
 
     @visited.setter
     def visited(self, v):
-        self.visited = v
+        self._visited = v

@@ -3,7 +3,6 @@ import time
 import random
 import sys
 from FloorTile import FloorTile
-from Wall import Wall
 from Item import Item
 from math import sqrt
 from Wall import Wall
@@ -34,6 +33,7 @@ class Player:
         self.playername = playername
         self.y = None
         self.x = None
+        self.logging_actions = {action: False for action in self.actions}
         self.health = 0
         self.ammo = 0
 
@@ -50,7 +50,7 @@ class Player:
     def get_player_actions(self, action):
         return self.actions
 
-    def set_logging_for_action(self,action):
+    def set_logging_for_action(self, action):
         if action in self.actions:
             self.logging_actions[action] = True
 
@@ -75,7 +75,7 @@ class Player:
             self.joined_server = True
             self.update(update)
 
-    def SendMessage(self, requestmovemessage ):
+    def SendMessage(self, requestmovemessage):
         bytesToSend = str.encode(requestmovemessage)
         self.socket.sendto(bytesToSend, self.serverDetails)
 
@@ -108,8 +108,6 @@ class Player:
         self.SendMessage(directionFaceMessage)
         if self.logging_actions["face_direction"]:
             print(directionFaceMessage)
-    
-
 
     def update(self, update):
         components = update.split(':')
