@@ -42,6 +42,8 @@ class Player:
         self.seen_floors = set()
         self.seen_walls = set()
 
+        self.predecessors = {}
+
         self.serverDetails = serverDetails
         self.socket = socket
         self.bufferSize = 1024
@@ -83,6 +85,11 @@ class Player:
         self.socket.sendto(bytesToSend, self.serverDetails)
 
     def move_to(self, x: int, y: int):
+
+        self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
+        self.x = x
+        self.y = y
+
         requestmovemessage = f"moveto:{x},{y}"
         self.SendMessage(requestmovemessage)
         if self.logging_actions["move_to"]:
@@ -117,7 +124,7 @@ class Player:
         dtype = components[0]
         data = components[1].split(',')
 
-        print(dtype, data)
+        # print(dtype, data)
 
         if dtype == 'playerupdate':
             # self.x = int(data[0])
@@ -148,6 +155,7 @@ class Player:
                     self.seen_floors.add(ft)
 
         elif dtype == 'playerjoined':
+            print('joined with data', data)
             self.x = int(data[2])
             self.y = int(data[3])
 
