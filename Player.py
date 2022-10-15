@@ -6,6 +6,7 @@ from FloorTile import FloorTile
 from Item import Item
 from math import sqrt
 from Wall import Wall
+from Exit import Exit
 
 
 class Player:
@@ -44,6 +45,8 @@ class Player:
         self.serverDetails = serverDetails
         self.socket = socket
         self.bufferSize = 1024
+
+        self.exit = None
 
         self.join()
 
@@ -157,6 +160,10 @@ class Player:
                     ft = Wall(int(x), int(y))
 
                     self.seen_walls.add(ft)
+
+        elif dtype == 'exit':
+            if len(data):
+                self.exit = Exit(int(data[0]), int(data[1]))
 
         else:
             print('ERR: unhandled update item', update)
