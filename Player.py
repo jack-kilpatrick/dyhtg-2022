@@ -28,30 +28,22 @@ class Player:
     def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
 
         # This dictionary controls which actions are logged (displayed in the output)
-        self.y = None
-        self.x = None
+
         self.logging_actions = {action: False for action in self.actions}
-        self.health = 0
-        self.ammo = 0
 
         self.playername = playername
-        self.x = 0
-        self.y = 0
+        self.y = None
+        self.x = None
         self.health = 0
         self.ammo = 0
-        self.nearby_items = []
-        self.seen_floors = []
 
-        self.serverDetails = serverDetails
-
-
-        self.socket = socket
-
-        self.bufferSize = 1024
-
-        self.nearby_items = set()
+        self.seen_items = set()
         self.seen_floors = set()
         self.seen_walls = set()
+
+        self.serverDetails = serverDetails
+        self.socket = socket
+        self.bufferSize = 1024
 
         self.join()
 
@@ -83,14 +75,9 @@ class Player:
             self.joined_server = True
             self.update(update)
 
-
     def SendMessage(self, requestmovemessage ):
         bytesToSend = str.encode(requestmovemessage)
         self.socket.sendto(bytesToSend, self.serverDetails)
-
-
-
-    
 
     def move_to(self, x: int, y: int):
         requestmovemessage = f"moveto:{x},{y}"
@@ -146,7 +133,7 @@ class Player:
                 n_groups = (len(data) - 1) // 3
                 for i in range(n_groups):
                     itemtype, x, y = data[i * 3:(i + 1) * 3]
-                    self.nearby_items.add(Item(itemtype, x, y))
+                    self.seen_items.add(Item(itemtype, x, y))
 
         elif dtype == 'nearbyfloors':
             # Each floor tile comes in the format x1,y1,x2,y2,...
@@ -162,7 +149,6 @@ class Player:
         elif dtype == 'playerjoined':
             self.x = int(data[2])
             self.y = int(data[3])
-
 
         elif dtype == 'nearbywalls':
             if len(data):
