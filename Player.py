@@ -3,6 +3,7 @@ import time
 import random
 import sys
 from FloorTile import FloorTile
+from Wall import Wall
 from Item import Item
 from math import sqrt
 from Wall import Wall
@@ -186,3 +187,25 @@ class Player:
         k_nearest_floors = sorted(self.seen_floors, key=distance)[:k]
 
         return k_nearest_floors
+
+    def nearest_walls(self, k):
+
+        def distance(wall: Wall):
+            return sqrt(
+                (self.x - wall.x) ** 2 + (self.y - wall.y) ** 2
+            )
+
+        k_nearest_walls = sorted(self.seen_walls, key=distance)[:k]
+
+        return k_nearest_walls
+
+    def nearest_items(self, k):
+
+        def distance(item: Item):
+            return sqrt(
+                (self.x - item.x) ** 2 + (self.y - item.y) ** 2
+            )
+
+        k_nearest_items = sorted(self.seen_items, key=distance)[:k]
+
+        return k_nearest_items
