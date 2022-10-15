@@ -108,23 +108,26 @@ class Player:
                 self.update_position_graph(pos, recursion_layer+1)
 
 
+
     def move_to(self, x: int, y: int):
-
-        if f'{x},{y}' not in self.predecessors:
-            self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
-
-        adjacent_positions = self.position_graph.get((x,y))
-
-        if adjacent_positions is None:
-            self.update_position_graph((x,y))
-
         self.x = x
         self.y = y
 
         requestmovemessage = f"moveto:{x},{y}"
         self.SendMessage(requestmovemessage)
+
+
+
         if self.logging_actions["move_to"]:
             print(requestmovemessage)
+
+        # if f'{x},{y}' not in self.predecessors:
+        #     self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
+
+        # adjacent_positions = self.position_graph.get((x,y))
+        #
+        # if adjacent_positions is None:
+        #     self.update_position_graph((x,y))
 
     def fire(self):
         fireMessage = "fire:"
