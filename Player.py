@@ -193,8 +193,8 @@ class Player:
 
         elif dtype == 'playerjoined':
             print('joined with data', data)
-            self.x = int(data[2])
-            self.y = int(data[3])
+            self.x = int(float(data[2]))
+            self.y = int(float(data[3]))
 
         elif dtype == 'nearbywalls':
             if len(data):
@@ -214,7 +214,7 @@ class Player:
 
         elif dtype == 'exit':
             if len(data):
-                self.exit = Exit(int(data[0]), int(data[1]))
+                self.exit = Exit(int(float(data[0])), int(float(data[1])))
 
         else:
             print('ERR: unhandled update item', update)
