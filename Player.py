@@ -5,6 +5,7 @@ import sys
 from FloorTile import FloorTile
 from Item import Item
 from math import sqrt
+from Wall import Wall
 
 
 class Player:
@@ -49,6 +50,7 @@ class Player:
 
         self.nearby_items = set()
         self.seen_floors = set()
+        self.seen_walls = set()
 
         self.join()
 
@@ -162,7 +164,14 @@ class Player:
 
 
         elif dtype == 'nearbywalls':
-            pass
+            if len(data):
+                n_groups = (len(data) - 1) // 2
+
+                for i in range(n_groups):
+                    x, y = data[i * 2:(i + 1) * 2]
+                    ft = Wall(int(x), int(y))
+
+                    self.seen_walls.add(ft)
 
         else:
             print('ERR: unhandled update item', update)
