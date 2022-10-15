@@ -8,6 +8,7 @@ from math import sqrt
 
 
 class Player:
+
     # A list of all the actions the player can perform
     actions = ["join", "move_to", "fire", "stop", "move_direction", "face_direction"]
 
@@ -19,7 +20,7 @@ class Player:
 
             print("Error creating socket: ", e)
             sys.exit(1)
-
+        
         return Player(playerName, serverDetails, UDPClientSocket)
 
     def __init__(self, playername: str, serverDetails: tuple[str, int], socket):
@@ -28,24 +29,19 @@ class Player:
         self.y = None
         self.x = None
         self.logging_actions = {action: False for action in self.actions}
-
-        self.moveInterval = 10
-        self.timeSinceMove = time.time()
-
-        self.fireInterval = 5
-        self.timeSinceFire = time.time()
-
-        self.stopInterval = 30
-        self.timeSinceStop = time.time()
-
-        self.directionMoveInterval = 15
-        self.timeSinceDirectionMove = time.time()
-
-        self.directionFaceInterval = 9
-        self.timeSinceDirectionFace = time.time()
+        self.health = 0
+        self.ammo = 0
 
         self.playername = playername
+        self.x = 0
+        self.y = 0
+        self.health = 0
+        self.ammo = 0
+        self.nearby_items = []
+        self.seen_floors = []
+
         self.serverDetails = serverDetails
+
 
         self.socket = socket
 
@@ -59,7 +55,7 @@ class Player:
     def get_player_actions(self, action):
         return self.actions
 
-    def set_logging_for_action(self, action):
+    def set_logging_for_action(self,action):
         if action in self.actions:
             self.logging_actions[action] = True
 
@@ -70,17 +66,28 @@ class Player:
             print(f"{action} is not a valid action, so cannot be logged - ignoring...")
 
     def join(self):
-        join_command = "requestjoin:" + self.playername
+        join_command = "requestjoin:mydisplayname"
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
-        update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
 
-        self.update(update)
+        try:
+            update = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
+        except TimeoutError:
+            self.joined_server = False
+            print(f"Failed to join server with player: {self.playername}")
+        else:
+            self.joined_server = True
+            self.update(update)
 
-    def SendMessage(self, requestmovemessage):
+
+    def SendMessage(self, requestmovemessage ):
         bytesToSend = str.encode(requestmovemessage)
         self.socket.sendto(bytesToSend, self.serverDetails)
+
+
+
+    
 
     def move_to(self, x: int, y: int):
         requestmovemessage = f"moveto:{x},{y}"
@@ -111,6 +118,8 @@ class Player:
         self.SendMessage(directionFaceMessage)
         if self.logging_actions["face_direction"]:
             print(directionFaceMessage)
+    
+
 
     def update(self, update):
         components = update.split(':')
@@ -122,9 +131,10 @@ class Player:
         if dtype == 'playerupdate':
             # self.x = int(data[0])
             # self.y = int(data[1])
+            self.health = int(data[2])
+            self.ammo = int(data[3])
 
             # what are data[2..4]
-            pass
 
         elif dtype == 'nearbyitem':
             # self.nearby_items.append(data)
