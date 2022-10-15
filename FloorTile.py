@@ -14,7 +14,7 @@ class FloorTile:
 
 
     def __eq__(self, __o: object) -> bool:
-        return isinstance(__o, FloorTile) and self.x == __o.x and self.y == __o.y
+        return self.x == __o.x and self.y == __o.y
 
     @property
     def visited(self):

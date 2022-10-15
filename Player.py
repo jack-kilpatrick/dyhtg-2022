@@ -42,6 +42,9 @@ class Player:
         self.seen_floors = set()
         self.seen_walls = set()
 
+
+        self.floors_dict = {}
+
         self.predecessors = {}
 
         self.serverDetails = serverDetails
@@ -154,6 +157,8 @@ class Player:
                     x, y = data[i * 2:(i + 1) * 2]
                     ft = FloorTile(int(x), int(y), False)
 
+                    if f'{x},{y}' not in self.floors_dict:
+                        self.floors_dict[f'{x},{y}'] = ft
                     self.seen_floors.add(ft)
 
         elif dtype == 'playerjoined':
