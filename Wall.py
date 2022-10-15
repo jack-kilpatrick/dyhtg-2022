@@ -10,4 +10,4 @@ class Wall:
 
 
     def __eq__(self, __o: object) -> bool:
-        return isinstance(__o, Wall) and self.x == __o.x and self.y == __o.y
+        return self.x == __o.x and self.y == __o.y
