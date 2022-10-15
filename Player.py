@@ -66,7 +66,7 @@ class Player:
             print(f"{action} is not a valid action, so cannot be logged - ignoring...")
 
     def join(self):
-        join_command = "requestjoin:mydisplayname"
+        join_command = "requestjoin:"+self.playername
         join_bytes = str.encode(join_command)
 
         self.socket.sendto(join_bytes, self.serverDetails)
@@ -86,7 +86,9 @@ class Player:
 
     def move_to(self, x: int, y: int):
 
-        self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
+        if f'{x},{y}' not in self.predecessors:
+            self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
+
         self.x = x
         self.y = y
 
@@ -208,3 +210,15 @@ class Player:
         k_nearest_items = sorted(self.seen_items, key=distance)[:k]
 
         return k_nearest_items
+
+
+    def k_nearest_unvisited(self, k):
+
+        def distance(floor: FloorTile):
+            return sqrt(
+                (self.x - floor.x) ** 2 + (self.y - floor.y) ** 2
+            )
+
+        nearest = sorted(self.seen_floors, key=distance)
+        unv = list(filter(lambda f: not f.visited, nearest))
+        return unv[:k]
