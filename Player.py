@@ -42,7 +42,7 @@ class Player:
         self.seen_items = set()
         self.seen_floors = set()
         self.seen_walls = set()
-        self.seen_players = set()
+        self.seen_players = {}
         self.position_graph={}
 
         self.predecessors = {}
@@ -201,6 +201,11 @@ class Player:
 
                     self.seen_walls.add(ft)
 
+        elif dtype == 'nearbyplayer':
+            if len(data):
+                character_class, player_name, x, y = data
+                self.seen_players[(character_class, player_name)] = [x,y]
+
         elif dtype == 'exit':
             if len(data):
                 self.exit = Exit(int(data[0]), int(data[1]))
@@ -255,12 +260,21 @@ class Player:
 
     def k_nearest_players(self, k):
 
-        def distance(player: Player):
+        def distance(x2, y2):
             return sqrt(
                 (self.x - player.x) ** 2 + (self.y - player.y) ** 2
             )
 
-        nearest = sorted(self.seen_players, key=distance)
+        player_distances = []
+        nearest = []
+
+        for player, player_pos in self.seen_players.items():
+            player_distance = distance(player_pos[0], player_pos[1])
+            player_distances.append([player, player_pos, player_distance])
+
+        player_distances.sort(key=lambda player_data: player_data[2])
+        nearest = [player[:2] for player in player_distances]
+
         return nearest[:k]
 
     def shortest_path_to_pos(self, source_x,source_y, dest_x,dest_y):
