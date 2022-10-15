@@ -161,12 +161,11 @@ class Player:
         # print(dtype, data)
 
         if dtype == 'playerupdate':
-            # self.x = int(data[0])
-            # self.y = int(data[1])
+            self.x = int(data[0])
+            self.y = int(data[1])
             self.health = int(data[2])
             self.ammo = int(data[3])
 
-            # what are data[2..4]
 
         elif dtype == 'nearbyitem':
             # self.nearby_items.append(data)
