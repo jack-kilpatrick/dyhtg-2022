@@ -45,6 +45,7 @@ class Player:
         self.seen_players = {}
         self.position_graph={}
 
+        self.floors_dict = {}
         self.predecessors = {}
 
         self.serverDetails = serverDetails
