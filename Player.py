@@ -57,6 +57,9 @@ class Player:
 
         self.join()
 
+        self.x += 4
+        self.y += 4
+
     def get_player_actions(self, action):
         return self.actions
 
