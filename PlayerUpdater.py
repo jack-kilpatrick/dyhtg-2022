@@ -2,11 +2,12 @@ import sys
 from Player import Player
 from FloorTile import FloorTile
 from time import sleep
+import socket
 import random
 from Wall import Wall
 
 if __name__ == '__main__':
-    player1 = Player.spawn(("localhost", 11000),'lorne')
+    player1 = Player.spawn(("10.211.55.4", 11000),'lorne')
     # player1.socket.settimeout(0)
     players = [player1]
 
@@ -33,16 +34,26 @@ if __name__ == '__main__':
     #         player1.update(u)
 
     def update():
-        for _ in range(100):
+        player1.stop()
+        player1.socket.close()
+        player1.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        player1.join()
+        #     player1.x += 4
+        #     player1.y += 4
+
+        for _ in range(64):
             update = player1.socket.recvfrom(player1.bufferSize)[0].decode('ascii')
             player1.update(update)
 
+
+    sleeptime = 0.75
+    updatefreq = 3
 
     # lastpos = player1.x,player1.y
     i = 0
     while True:
 
-        if i % 2 == 0:
+        if i % updatefreq == 0:
             update()
 
         left_square = player1.x - 8, player1.y
@@ -56,7 +67,7 @@ if __name__ == '__main__':
         player1.move_to(sq.x, sq.y)
 
         i += 1
-        sleep(0.75)
+        sleep(sleeptime)
 
     n = player1.x, player1.y - 8
     s = player1.x, player1.y + 8
@@ -82,7 +93,7 @@ if __name__ == '__main__':
             return
 
         player1.move_to(ntile.x, ntile.y)
-        sleep(1)
+        sleep(sleeptime)
 
         i = 0
 
@@ -111,9 +122,9 @@ if __name__ == '__main__':
 
             i += 1
 
-            if i % 2 == 0:
+            if i % updatefreq == 0:
                 update()
-            sleep(1)
+            sleep(sleeptime)
 
 
     def east():
@@ -129,7 +140,7 @@ if __name__ == '__main__':
             return
 
         player1.move_to(etile.x, etile.y)
-        sleep(1)
+        sleep(sleeptime)
 
         i = 0
 
@@ -159,9 +170,9 @@ if __name__ == '__main__':
             player1.move_to(etile.x, etile.y)
             i += 1
 
-            if i % 2 == 0:
+            if i % updatefreq == 0:
                 update()
-            sleep(1)
+            sleep(sleeptime)
 
 
     def south():
@@ -177,7 +188,7 @@ if __name__ == '__main__':
             return
 
         player1.move_to(stile.x, stile.y)
-        sleep(1)
+        sleep(sleeptime)
 
         i = 0
         while True:
@@ -206,9 +217,9 @@ if __name__ == '__main__':
             player1.move_to(stile.x, stile.y)
             i += 1
 
-            if i % 2 == 0:
+            if i % updatefreq == 0:
                 update()
-            sleep(1)
+            sleep(sleeptime)
 
 
     def west():
@@ -225,7 +236,7 @@ if __name__ == '__main__':
 
         player1.move_to(wtile.x, wtile.y)
 
-        sleep(1)
+        sleep(sleeptime)
         i = 0
 
         while True:
@@ -253,9 +264,9 @@ if __name__ == '__main__':
 
             i += 1
 
-            if i % 2 == 0:
+            if i % updatefreq == 0:
                 update()
-            sleep(1)
+            sleep(sleeptime)
 
 
     north()

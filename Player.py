@@ -58,9 +58,6 @@ class Player:
 
         self.join()
 
-        self.x += 4
-        self.y += 4
-
     def get_player_actions(self, action):
         return self.actions
 
@@ -185,6 +182,10 @@ class Player:
                     i = Item(itemtype, x, y)
                     self.seen_items.add(i)
 
+
+
+
+
                     if self.playertype == 'elf' and itemtype == 'greenkey':
                         print('Key found', i)
                         if self.inventory_dict.get((i.x, i.y)) is None:
@@ -218,8 +219,9 @@ class Player:
         elif dtype == 'playerjoined':
             print('joined with data', data)
             self.playertype = data[0]
-            self.x = int(float(data[2]))
-            self.y = int(float(data[3]))
+
+            self.x = 8 * math.ceil(int(float(data[2])) / 8)
+            self.y = 8 * math.ceil(int(float(data[3])) / 8)
 
         elif dtype == 'nearbywalls':
             if len(data):
@@ -368,10 +370,10 @@ class Player:
 
     def get_item(self, item_x_pos, item_y_pos):
 
-        if item_y_pos == self.y:
-            if item_x_pos > self.x:
-                for i in range(0, item_x_pos, 8):
-                    if self.seen_walls(self.x+)
+        # if item_y_pos == self.y:
+        #     if item_x_pos > self.x:
+        #         for i in range(0, item_x_pos, 8):
+        #             if self.seen_walls(self.x+)
 
 
 
