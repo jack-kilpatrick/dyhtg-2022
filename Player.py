@@ -163,8 +163,8 @@ class Player:
         # print(dtype, data)
 
         if dtype == 'playerupdate':
-            self.x = int(float(data[0]))
-            self.y = int(float(data[1]))
+            # self.x = int(float(data[0]))
+            # self.y = int(float(data[1]))
             self.health = int(data[2])
             self.ammo = int(data[3])
 
@@ -176,7 +176,21 @@ class Player:
                 n_groups = (len(data) - 1) // 3
                 for i in range(n_groups):
                     itemtype, x, y = data[i * 3:(i + 1) * 3]
-                    self.seen_items.add(Item(itemtype, x, y))
+                    i = Item(itemtype, x, y)
+                    self.seen_items.add(i)
+
+
+                    if 'key' in itemtype:
+                        if self.playertype == 'elf' and itemtype == 'greenkey':
+                            print('Key found', i)
+                        elif self.playertype == 'warrior' and itemtype == 'redkey':
+                            print('Key found', i)
+                        elif self.playertype == 'valkyrie' and itemtype == 'bluekey':
+                            print('Key found', i)
+                        elif self.playertype == 'wizard' and itemtype == 'yellowkey':
+                            print('Key found', i)
+                        else:
+                            print('unhandled key', i)
 
         elif dtype == 'nearbyfloors':
             # Each floor tile comes in the format x1,y1,x2,y2,...
@@ -193,6 +207,7 @@ class Player:
 
         elif dtype == 'playerjoined':
             print('joined with data', data)
+            self.playertype = data[0]
             self.x = int(float(data[2]))
             self.y = int(float(data[3]))
 
@@ -209,12 +224,15 @@ class Player:
 
         elif dtype == 'nearbyplayer':
             if len(data):
-                character_class, player_name, x, y = data
+                print(data)
+                character_class, player_name, x, y = data[:4]
                 self.seen_players[(character_class, player_name)] = [x,y]
 
         elif dtype == 'exit':
             if len(data):
+
                 self.exit = Exit(int(float(data[0])), int(float(data[1])))
+                # print("Exit is at", self.exit)
 
         else:
             print('ERR: unhandled update item', update)
