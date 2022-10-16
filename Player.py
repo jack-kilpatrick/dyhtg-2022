@@ -182,18 +182,14 @@ class Player:
                     i = Item(itemtype, x, y)
                     self.seen_items.add(i)
 
-
-                    if 'key' in itemtype:
-                        if self.playertype == 'elf' and itemtype == 'greenkey':
-                            print('Key found', i)
-                        elif self.playertype == 'warrior' and itemtype == 'redkey':
-                            print('Key found', i)
-                        elif self.playertype == 'valkyrie' and itemtype == 'bluekey':
-                            print('Key found', i)
-                        elif self.playertype == 'wizard' and itemtype == 'yellowkey':
-                            print('Key found', i)
-                        else:
-                            print('unhandled key', i)
+                    if self.playertype == 'elf' and itemtype == 'greenkey':
+                        print('Key found', i)
+                    elif self.playertype == 'warrior' and itemtype == 'redkey':
+                        print('Key found', i)
+                    elif self.playertype == 'valkyrie' and itemtype == 'bluekey':
+                        print('Key found', i)
+                    elif self.playertype == 'wizard' and itemtype == 'yellowkey':
+                        print('Key found', i)
 
         elif dtype == 'nearbyfloors':
             # Each floor tile comes in the format x1,y1,x2,y2,...
