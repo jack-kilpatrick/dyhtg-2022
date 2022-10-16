@@ -44,6 +44,7 @@ class Player:
         self.seen_walls = set()
         self.seen_walls_dict = {}
         self.seen_players = {}
+        self.inventory_dict = {}
         self.position_graph={}
 
         self.floors_dict = {}
@@ -95,7 +96,7 @@ class Player:
     def update_position_graph(self, position_as_tuple, recursion_layer=0):
 
         if self.position_graph.get(position_as_tuple) is None:
-            if recursion_layer < 1:
+            if recursion_layer < 2:
 
                 self.position_graph[position_as_tuple] = []
 
@@ -114,7 +115,7 @@ class Player:
 
 
 
-    def move_to(self, x: int, y: int):
+    def move_to(self, x: int, y: int, mapping=True):
         self.x = x
         self.y = y
 
@@ -129,10 +130,12 @@ class Player:
         # if f'{x},{y}' not in self.predecessors:
         #     self.predecessors[f'{x},{y}'] = f'{self.x},{self.y}'
 
-        # adjacent_positions = self.position_graph.get((x,y))
-        #
-        # if adjacent_positions is None:
-        #     self.update_position_graph((x,y))
+        if mapping:
+
+            adjacent_positions = self.position_graph.get((x,y))
+
+            if adjacent_positions is None:
+                self.update_position_graph((x,y))
 
     def fire(self):
         fireMessage = "fire:"
@@ -184,11 +187,19 @@ class Player:
 
                     if self.playertype == 'elf' and itemtype == 'greenkey':
                         print('Key found', i)
+                        if self.inventory_dict.get((i.x, i.y)) is None:
+                            self.get_item(i.x, i.y)
                     elif self.playertype == 'warrior' and itemtype == 'redkey':
+                        if self.inventory_dict.get((i.x, i.y)) is None:
+                            self.get_item(i.x, i.y)
                         print('Key found', i)
                     elif self.playertype == 'valkyrie' and itemtype == 'bluekey':
+                        if self.inventory_dict.get((i.x, i.y)) is None:
+                            self.get_item(i.x, i.y)
                         print('Key found', i)
                     elif self.playertype == 'wizard' and itemtype == 'yellowkey':
+                        if self.inventory_dict.get((i.x, i.y)) is None:
+                            self.get_item(i.x, i.y)
                         print('Key found', i)
 
         elif dtype == 'nearbyfloors':
@@ -317,8 +328,8 @@ class Player:
 
         while len(position_queue) != 0:
             curr_pos = position_queue.pop(0)
-            for adj_pos in self.position_graph[curr_pos]:
-                if not visited[adj_pos]:
+            for adj_pos in self.position_graph.get(curr_pos, []):
+                if visited.get(adj_pos) is not None and not visited[adj_pos]:
                     visited[adj_pos] = True
                     distances_to_positions[adj_pos] = 1+distances_to_positions[curr_pos]
                     predecessors[adj_pos] = curr_pos
@@ -353,8 +364,35 @@ class Player:
 
     def guard_current_pos(self):
 
-        while self.ammo > 0:
-            break
+        pass
+
+    def get_item(self, item_x_pos, item_y_pos):
+
+        if item_y_pos == self.y:
+            if item_x_pos > self.x:
+                for i in range(0, item_x_pos, 8):
+                    if self.seen_walls(self.x+)
+
+
+
+        if True == False:
+
+            path_to_item = self.shortest_path_to_pos(self.x, self.y, item_x_pos, item_y_pos)
+
+            if path_to_item:
+
+
+                for pos in path_to_item:
+                    x_pos, y_pos = pos
+                    self.move_to(x_pos, y_pos, False)
+
+                for pos in path_to_item[1::-1]:
+                    x_pos, y_pos = pos
+                    self.move_to(x_pos, y_pos, False)
+
+                self.move_to(self.x, self.y)
+
+                self.inventory_dict[(item_x_pos, item_y_pos)] = True
 
 
 
