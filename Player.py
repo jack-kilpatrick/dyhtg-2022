@@ -35,6 +35,7 @@ class Player:
         self.playername = playername
         self.y = None
         self.x = None
+        self.facing_direction = "s"
         self.logging_actions = {action: False for action in self.actions}
         self.health = 0
         self.ammo = 0
@@ -42,6 +43,7 @@ class Player:
         self.seen_items = set()
         self.seen_floors = set()
         self.seen_walls = set()
+        self.seen_items_dict = {}
         self.seen_walls_dict = {}
         self.seen_players = {}
         self.inventory_dict = {}
@@ -110,7 +112,36 @@ class Player:
                 for pos in adj_positions_queue:
                     self.update_position_graph(pos, recursion_layer+1)
 
+    def get_position(self):
+        return self.x, self.y
 
+    def get_tile_in_front(self):
+        tile_in_front = self.get_position()
+
+        if self.facing_direction == "n":
+            tile_in_front = (self.x, self.y-8)
+        elif self.facing_direction == "e":
+            tile_in_front = (self.x+8, self.y)
+        elif self.facing_direction == "s":
+            tile_in_front = (self.x, self.y + 8)
+        elif self.facing_direction == "w":
+            tile_in_front = (self.x-8, self.y)
+
+        return tile_in_front
+
+    def get_tile_on_right(self):
+        tile_on_right = self.get_position()
+
+        if self.facing_direction == "n":
+            tile_on_right = (self.x+8, self.y)
+        elif self.facing_direction == "e":
+            tile_on_right = (self.x, self.y+8)
+        elif self.facing_direction == "s":
+            tile_on_right = (self.x-8, self.y)
+        elif self.facing_direction == "w":
+            tile_on_right = (self.x, self.y-8)
+
+        return tile_on_right
 
     def move_to(self, x: int, y: int, mapping=True):
         self.x = x
@@ -153,10 +184,33 @@ class Player:
             print(directionMoveMessage)
 
     def face_direction(self, direction):
+        self.facing_direction = direction
         directionFaceMessage = f"facedirection:{direction}"
         self.SendMessage(directionFaceMessage)
         if self.logging_actions["face_direction"]:
             print(directionFaceMessage)
+
+    def face_right(self):
+
+        if self.facing_direction == "n":
+            self.face_direction("e")
+        elif self.facing_direction == "e":
+            self.face_direction("s")
+        elif self.facing_direction == "s":
+            self.face_direction("w")
+        elif self.facing_direction == "w":
+            self.face_direction("n")
+
+    def face_left(self):
+
+        if self.facing_direction == "n":
+            self.face_direction("w")
+        elif self.facing_direction == "e":
+            self.face_direction("n")
+        elif self.facing_direction == "s":
+            self.face_direction("e")
+        elif self.facing_direction == "w":
+            self.face_direction("s")
 
     def update(self, update):
         components = update.split(':')
@@ -166,8 +220,8 @@ class Player:
         # print(dtype, data)
 
         if dtype == 'playerupdate':
-            # self.x = int(float(data[0]))
-            # self.y = int(float(data[1]))
+            self.x = int(round(float(data[0])/8)*8)
+            self.y = int(round(float(data[1])/8)*8)
             self.health = int(data[2])
             self.ammo = int(data[3])
 
@@ -182,18 +236,16 @@ class Player:
                     i = Item(itemtype, x, y)
                     self.seen_items.add(i)
 
-
-
-
+                    if itemtype == 'treasure':
+                        self.seen_items_dict['redkey'] = (int(i.x), int(i.y))
 
                     if self.playertype == 'elf' and itemtype == 'greenkey':
                         print('Key found', i)
                         if self.inventory_dict.get((i.x, i.y)) is None:
                             self.get_item(i.x, i.y)
                     elif self.playertype == 'warrior' and itemtype == 'redkey':
-                        if self.inventory_dict.get((i.x, i.y)) is None:
-                            self.get_item(i.x, i.y)
-                        print('Key found', i)
+                        self.seen_items_dict['redkey'] = (int(i.x), int(i.y))
+                        #print('Key found', i)
                     elif self.playertype == 'valkyrie' and itemtype == 'bluekey':
                         if self.inventory_dict.get((i.x, i.y)) is None:
                             self.get_item(i.x, i.y)
@@ -232,7 +284,7 @@ class Player:
                     ft = Wall(int(x), int(y))
 
                     self.seen_walls.add(ft)
-                    self.seen_walls_dict[(x,y)] = True
+                    self.seen_walls_dict[(int(x),int(y))] = True
 
         elif dtype == 'nearbyplayer':
             if len(data):
@@ -244,6 +296,7 @@ class Player:
             if len(data):
 
                 self.exit = Exit(int(float(data[0])), int(float(data[1])))
+                self.seen_items_dict['exit'] = (int(data[0]), int(data[1]))
                 # print("Exit is at", self.exit)
 
         else:
@@ -368,33 +421,48 @@ class Player:
 
         pass
 
-    def get_item(self, item_x_pos, item_y_pos):
-
-        # if item_y_pos == self.y:
-        #     if item_x_pos > self.x:
-        #         for i in range(0, item_x_pos, 8):
-        #             if self.seen_walls(self.x+)
 
 
 
-        if True == False:
+    def get_item(self, item_name):
 
-            path_to_item = self.shortest_path_to_pos(self.x, self.y, item_x_pos, item_y_pos)
+        print(f"trying to get: {item_name}")
+        item_x, item_y = self.seen_items_dict[item_name]
+        player_x, player_y = self.get_position()
 
-            if path_to_item:
+        path_exists = True
 
+        if player_x == item_x:
+            for y in range(min([item_y, player_y]), max([item_y+1, player_y+1]), 8):
+                if (item_x,y) in self.seen_walls_dict:
+                    path_exists = False
+        elif player_y == item_y:
+            for x in range(min([item_x, player_x]), max([item_x + 1, player_x + 1]), 8):
+                if (x, item_y) in self.seen_walls_dict:
+                    path_exists = False
+        else:
+            path_exists = False
 
-                for pos in path_to_item:
-                    x_pos, y_pos = pos
-                    self.move_to(x_pos, y_pos, False)
+        if path_exists:
 
-                for pos in path_to_item[1::-1]:
-                    x_pos, y_pos = pos
-                    self.move_to(x_pos, y_pos, False)
+            original_facing_direction = self.facing_direction
 
-                self.move_to(self.x, self.y)
+            while self.get_position() != (item_x, item_y):
+                self.move_to(item_x, item_y)
+                for _ in range(10):
+                    update_message = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
+                    self.update(update_message)
 
-                self.inventory_dict[(item_x_pos, item_y_pos)] = True
+            while self.get_position() != (player_x, player_y):
+                self.move_to(player_x, player_y)
+                for _ in range(10):
+                    update_message = self.socket.recvfrom(self.bufferSize)[0].decode('ascii')
+                    self.update(update_message)
+
+            self.face_direction(original_facing_direction)
+
+            self.seen_items_dict.pop(item_name)
+            self.inventory_dict[item_name] = True
 
 
 
